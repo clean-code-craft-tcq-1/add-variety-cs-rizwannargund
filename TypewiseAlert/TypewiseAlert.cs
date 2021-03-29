@@ -1,90 +1,62 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace TypewiseAlert
 {
-  public class TypewiseAlert
-  {
-    public enum BreachType {
-      NORMAL,
-      TOO_LOW,
-      TOO_HIGH
-    };
-    public static BreachType inferBreach(double value, double lowerLimit, double upperLimit) {
-      if(value < lowerLimit) {
-        return BreachType.TOO_LOW;
-      }
-      if(value > upperLimit) {
-        return BreachType.TOO_HIGH;
-      }
-      return BreachType.NORMAL;
-    }
-    public enum CoolingType {
-      PASSIVE_COOLING,
-      HI_ACTIVE_COOLING,
-      MED_ACTIVE_COOLING
-    };
-    public static BreachType classifyTemperatureBreach(
-        CoolingType coolingType, double temperatureInC) {
-      int lowerLimit = 0;
-      int upperLimit = 0;
-      switch(coolingType) {
-        case CoolingType.PASSIVE_COOLING:
-          lowerLimit = 0;
-          upperLimit = 35;
-          break;
-        case CoolingType.HI_ACTIVE_COOLING:
-          lowerLimit = 0;
-          upperLimit = 45;
-          break;
-        case CoolingType.MED_ACTIVE_COOLING:
-          lowerLimit = 0;
-          upperLimit = 40;
-          break;
-      }
-      return inferBreach(temperatureInC, lowerLimit, upperLimit);
-    }
-    public enum AlertTarget{
-      TO_CONTROLLER,
-      TO_EMAIL
-    };
-    public struct BatteryCharacter {
-      public CoolingType coolingType;
-      public string brand;
-    }
-    public static void checkAndAlert(
-        AlertTarget alertTarget, BatteryCharacter batteryChar, double temperatureInC) {
+    public class TypewiseAlert
+    {
+        public static BreachType InferBreach(double value, double lowerLimit, double upperLimit)
+        {
+            List<object> instanceObjects = MetaDataUtility.CreateInstanceFromInterface("TypewiseAlert", "TypewiseAlert",
+                typeof(ITemperatureBreach), new object[,] { { lowerLimit }, { upperLimit } });
+            List<BreachType> breachTypes = new List<BreachType>();
+            BreachType result = BreachType.NORMAL;
+            if (instanceObjects?.Count > 0)
+            {
+                foreach (object obj in instanceObjects)
+                {
+                    breachTypes.Add(new InferTemperatureBreach((ITemperatureBreach)obj).BreachLimit(value));
+                }
+                result = breachTypes.Find(x => x != BreachType.NORMAL);
+            }
+            return result;
+        }
 
-      BreachType breachType = classifyTemperatureBreach(
-        batteryChar.coolingType, temperatureInC
-      );
+        public static BreachType ClassifyTemperatureBreach(
+            CoolingType coolingType, double temperatureInC)
+        {
+            int lowerLimit = 0;
+            int upperLimit = 0;
+            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert", 
+                typeof(ICoolingLimits), Enum.GetName(typeof(CoolingType), coolingType));
+            if (instanceObject != null)
+            {
+                int[] limits = new TemperatureCooling((ICoolingLimits)instanceObject).GetLimits();
+                lowerLimit = limits[0];
+                upperLimit = limits[1];
+            }
+            return InferBreach(temperatureInC, lowerLimit, upperLimit);
+        }
 
-      switch(alertTarget) {
-        case AlertTarget.TO_CONTROLLER:
-          sendToController(breachType);
-          break;
-        case AlertTarget.TO_EMAIL:
-          sendToEmail(breachType);
-          break;
-      }
+        public struct BatteryCharacter
+        {
+            public CoolingType coolingType;
+            public string brand;
+        }
+        public static bool CheckAndAlert(
+            AlertTarget alertTarget, BatteryCharacter batteryChar, double temperatureInC)
+        {
+            BreachType breachType = ClassifyTemperatureBreach(
+              batteryChar.coolingType, temperatureInC
+            );
+            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert", 
+                typeof(IAlertRaiser), Enum.GetName(typeof(AlertTarget), alertTarget));
+            if (instanceObject != null)
+            {
+                new AlertNotifier((IAlertRaiser)instanceObject).SendNotification(breachType);
+                return true;
+            }
+            return false;
+        }
     }
-    public static void sendToController(BreachType breachType) {
-      const ushort header = 0xfeed;
-      Console.WriteLine("{} : {}\n", header, breachType);
-    }
-    public static void sendToEmail(BreachType breachType) {
-      string recepient = "a.b@c.com";
-      switch(breachType) {
-        case BreachType.TOO_LOW:
-          Console.WriteLine("To: {}\n", recepient);
-          Console.WriteLine("Hi, the temperature is too low\n");
-          break;
-        case BreachType.TOO_HIGH:
-          Console.WriteLine("To: {}\n", recepient);
-          Console.WriteLine("Hi, the temperature is too high\n");
-          break;
-        case BreachType.NORMAL:
-          break;
-      }
-    }
-  }
 }
