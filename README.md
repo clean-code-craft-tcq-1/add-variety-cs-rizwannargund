@@ -1,10 +1,27 @@
-# Check and Alert based on types
+# Typewise alert
 
-This exercise is based on the [BMS monitoring] domain.
+  ## AlertNotifierImplementation folder
 
-Expand the checks and alerts to take care of a variety of types.
+  Constains classes to decide to where alert to send (i.e Controller or Email).
 
-## Open for Extensions
+  ## TemperatureBreachImplementation folder
 
-How can you minimize the amount of work done to add a new type?
-Can you add without modifying existing code?
+  Verifies different levels of temperature breach
+
+  ## TemperatureCoolingImplementation folder
+
+  Verifies different levels of cooling limits
+
+  ## interfaces folder
+ 
+  Conatins all interfaces related to TypewiseAlert
+ 
+  ## CustomAttribute class
+ 
+  Customattribute helps finding the classes through metadata to instantiate object of that class.
+ 
+  ## MetaDataUtility class 
+ 
+  Helps to read types and create instance on runtime.
+ 
+  ## TypewiseAlert.Test helps to test all features and code coverage.
