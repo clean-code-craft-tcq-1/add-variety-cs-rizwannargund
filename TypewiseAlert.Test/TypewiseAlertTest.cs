@@ -1,3 +1,4 @@
+using Moq;
 using System;
 using Xunit;
 
@@ -6,7 +7,7 @@ namespace TypewiseAlert.Test
     public class TypewiseAlertTest
     {
         [Fact]
-        public void InfersBreachAsPerLimits()
+        public void InfersBreachAsPerLimits_Test()
         {
             Assert.True(TypewiseAlert.InferBreach(12, 20, 30) ==
               BreachType.TOO_LOW);
@@ -17,7 +18,7 @@ namespace TypewiseAlert.Test
         }
 
         [Fact]
-        public void ClassifyTemperatureBreachTest()
+        public void ClassifyTemperatureBreach_Test()
         {
             Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.PASSIVE_COOLING, -1) ==
                 BreachType.TOO_LOW);
@@ -42,45 +43,48 @@ namespace TypewiseAlert.Test
         }
 
         [Fact]
-        public void CheckAndAlertTest()
+        public void CheckAndAlert_Test()
         {
             var batteryCharacter = new TypewiseAlert.BatteryCharacter();
             batteryCharacter.coolingType = CoolingType.PASSIVE_COOLING;
             batteryCharacter.brand = "BOSCH";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 38));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 12));
+            string[] alertTargets = Enum.GetNames(typeof(AlertTarget));
+            string[] coolingTypes = Enum.GetNames(typeof(CoolingType));
+            for (int i = 0; i < alertTargets.Length; i++)
+            {
+                for (int j = 0; j < coolingTypes.Length; j++)
+                {
+                    Enum.TryParse(alertTargets[i], out AlertTarget alertTarget);
+                    Enum.TryParse(coolingTypes[j], out CoolingType coolingType);
+                    batteryCharacter.coolingType = coolingType;
+                    var exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, -1));
+                    Assert.Null(exception);
+                    exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, 46));
+                    Assert.Null(exception);
+                    exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, 12));
+                    Assert.Null(exception);
+                }
+            }
+        }
 
-            batteryCharacter.coolingType = CoolingType.HI_ACTIVE_COOLING;
-            batteryCharacter.brand = "PHILIP";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 46));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 12));
-
-            batteryCharacter.coolingType = CoolingType.MED_ACTIVE_COOLING;
-            batteryCharacter.brand = "HITACHI";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 41));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_CONTROLLER, batteryCharacter, 12));
-
-            //Alert to email
+        [Fact]
+        public void Fake_CheckAndAlert_Test()
+        {
+            var batteryCharacter = new TypewiseAlert.BatteryCharacter();
             batteryCharacter.coolingType = CoolingType.PASSIVE_COOLING;
             batteryCharacter.brand = "BOSCH";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 38));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 12));
+            BreachType breachType = BreachType.NORMAL;
 
-            batteryCharacter.coolingType = CoolingType.HI_ACTIVE_COOLING;
-            batteryCharacter.brand = "BOSCH";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 46));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 12));
+            var notifier = new Mock<FakeNotifier>();
+            notifier.Setup(x => x.SendNotification(breachType)).Verifiable();
 
-            batteryCharacter.coolingType = CoolingType.MED_ACTIVE_COOLING;
-            batteryCharacter.brand = "BOSCH";
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, -1));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 41));
-            Assert.True(TypewiseAlert.CheckAndAlert(AlertTarget.TO_EMAIL, batteryCharacter, 12));
+            var emailNotifier = new Mock<FakeBreachEmailNotifier>();
+            emailNotifier.Setup(x => x.BreachNotifier("")).Verifiable();
+
+            var exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(AlertTarget.TO_FAKE, batteryCharacter, 12));
+            Assert.Null(exception);
+
+            Assert.True(TypewiseAlert.isCheckAndAlertMethodCalledAtLeastOnce);
         }
     }
 }
