@@ -5,7 +5,6 @@ namespace TypewiseAlert
 {
     public class TypewiseAlert
     {
-        public static bool isCheckAndAlertMethodCalledAtLeastOnce = false;
         public static BreachType InferBreach(double value, double lowerLimit, double upperLimit)
         {
             List<object> instanceObjects = MetaDataUtility.CreateInstanceFromInterface("TypewiseAlert", "TypewiseAlert",
@@ -47,7 +46,6 @@ namespace TypewiseAlert
         public static void CheckAndAlert(
             AlertTarget alertTarget, BatteryCharacter batteryChar, double temperatureInC)
         {
-            isCheckAndAlertMethodCalledAtLeastOnce = true;
             BreachType breachType = ClassifyTemperatureBreach(
               batteryChar.coolingType, temperatureInC
             );

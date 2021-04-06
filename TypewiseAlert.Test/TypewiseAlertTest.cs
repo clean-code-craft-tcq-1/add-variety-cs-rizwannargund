@@ -84,7 +84,8 @@ namespace TypewiseAlert.Test
             var exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(AlertTarget.TO_FAKE, batteryCharacter, 12));
             Assert.Null(exception);
 
-            Assert.True(TypewiseAlert.isCheckAndAlertMethodCalledAtLeastOnce);
+            Assert.True(FakeNotifier.isSendNotificationMethodCalledAtleastOnce);
+            Assert.True(FakeBreachEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
         }
     }
 }
