@@ -113,6 +113,32 @@ namespace TypewiseAlert.Test
                 !fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
         }
 
+        [Fact(DisplayName = "When breach infered is HIGH and dummy EMAIL alert triggered")]
+        public void emailHighBreachCheckAndAlertTest()
+        {
+            //Arrange
+            var highBreachEmailNotifier = new HighBreachEmailNotifier();
+
+            //Act
+            var anyException = Record.Exception(() => highBreachEmailNotifier.BreachNotifier("dummy@a.com"));
+
+            //Assert
+            Assert.Null(anyException);
+        }
+
+        [Fact(DisplayName = "When breach infered is LOW and dummy EMAIL alert triggered")]
+        public void emailLowBreachCheckAndAlertTest()
+        {
+            //Arrange
+            var lowBreachEmailNotifier = new LowBreachEmailNotifier();
+
+            //Act
+            var anyException = Record.Exception(() => lowBreachEmailNotifier.BreachNotifier("dummy@a.com"));
+
+            //Assert
+            Assert.Null(anyException);
+        }
+
         [Theory(DisplayName = "Check and alert when normal breach")]
         [MemberData(nameof(CheckAndAlertForNormalBreach))]
         public void checkAndAlertForNormalBreach(AlertTarget alertTarget, TypewiseAlert.BatteryCharacter batteryCharacter,
