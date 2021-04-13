@@ -6,7 +6,7 @@ namespace TypewiseAlert
     public class FakeBreachEmailNotifier : IBreachEmailNotifier
     {
         public static bool isBreachNotifierMethodCalledAtleastOnce = false;
-        public virtual void BreachNotifier(string recepient)
+        public void BreachNotifier(string recepient)
         {
             isBreachNotifierMethodCalledAtleastOnce = true;
             Console.WriteLine("Fake email notifier");

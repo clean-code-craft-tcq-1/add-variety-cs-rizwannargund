@@ -8,7 +8,6 @@
     {
         TO_CONTROLLER,
         TO_EMAIL,
-        TO_CONSOLE,
-        TO_FAKE
+        TO_CONSOLE
     };
 }

@@ -1,91 +1,107 @@
 using Moq;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace TypewiseAlert.Test
 {
     public class TypewiseAlertTest
     {
-        [Fact]
-        public void InfersBreachAsPerLimits_Test()
+
+        [Fact(DisplayName = "Metadata utility test")]
+        public void metadataUtilityTest()
         {
-            Assert.True(TypewiseAlert.InferBreach(12, 20, 30) ==
-              BreachType.TOO_LOW);
-            Assert.True(TypewiseAlert.InferBreach(31, 20, 30) ==
-              BreachType.TOO_HIGH);
-            Assert.True(TypewiseAlert.InferBreach(25, 20, 30) ==
-              BreachType.NORMAL);
+            var instance = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert", typeof(IAlertRaiser),
+                "TO_FAKE_EMAIL");
+            Assert.NotNull(instance);
         }
 
-        [Fact]
-        public void ClassifyTemperatureBreach_Test()
+        [Fact(DisplayName = "Infer breach for passive cooling - low")]
+        public void classifyTemperatureBreachForPassiveCoolingTest()
         {
             Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.PASSIVE_COOLING, -1) ==
                 BreachType.TOO_LOW);
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.PASSIVE_COOLING, 38) ==
-                BreachType.TOO_HIGH);
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.PASSIVE_COOLING, 12) ==
-                BreachType.NORMAL);
+        }
 
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.MED_ACTIVE_COOLING, -1) ==
-                BreachType.TOO_LOW);
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.MED_ACTIVE_COOLING, 41) ==
-                BreachType.TOO_HIGH);
+        [Fact(DisplayName = "Infer breach for medium active cooling - normal")]
+        public void classifyTemperatureBreachForMediumCoolingTest()
+        {
             Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.MED_ACTIVE_COOLING, 12) ==
                 BreachType.NORMAL);
+        }
 
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.HI_ACTIVE_COOLING, -1) ==
-                BreachType.TOO_LOW);
+        [Fact(DisplayName = "Infer breach for High active cooling - high")]
+        public void classifyTemperatureBreachForHighCoolingTest()
+        {
             Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.HI_ACTIVE_COOLING, 46) ==
                 BreachType.TOO_HIGH);
-            Assert.True(TypewiseAlert.ClassifyTemperatureBreach(CoolingType.HI_ACTIVE_COOLING, 12) ==
-                BreachType.NORMAL);
         }
 
-        [Fact]
-        public void CheckAndAlert_Test()
+        [Theory(DisplayName = "When breach infered is TOO_LOW and TOO_HIGH and FAKE CONSOLE alert triggered")]
+        [InlineData(BreachType.TOO_LOW)]
+        [InlineData(BreachType.TOO_HIGH)]
+        public void fakeConsoleCheckAndAlertTest(BreachType breachType)
         {
-            var batteryCharacter = new TypewiseAlert.BatteryCharacter();
-            batteryCharacter.coolingType = CoolingType.PASSIVE_COOLING;
-            batteryCharacter.brand = "BOSCH";
-            string[] alertTargets = Enum.GetNames(typeof(AlertTarget));
-            string[] coolingTypes = Enum.GetNames(typeof(CoolingType));
-            for (int i = 0; i < alertTargets.Length; i++)
-            {
-                for (int j = 0; j < coolingTypes.Length; j++)
-                {
-                    Enum.TryParse(alertTargets[i], out AlertTarget alertTarget);
-                    Enum.TryParse(coolingTypes[j], out CoolingType coolingType);
-                    batteryCharacter.coolingType = coolingType;
-                    var exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, -1));
-                    Assert.Null(exception);
-                    exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, 46));
-                    Assert.Null(exception);
-                    exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, 12));
-                    Assert.Null(exception);
-                }
-            }
+            //Arrange
+            var fakeConsoleNotifier = new FakeConsoleNotifier();
+            var alertNotifier = new AlertNotifier(fakeConsoleNotifier);
+
+            //Act
+            alertNotifier.SendNotification(breachType);
+
+            //Assert
+            Assert.True(fakeConsoleNotifier.isSendNotificationMethodCalledAtleastOnce);
         }
 
-        [Fact]
-        public void Fake_CheckAndAlert_Test()
+        [Theory(DisplayName = "When breach infered is TOO_LOW and TOO_HIGH and FAKE CONTROLLER alert triggered")]
+        [InlineData(BreachType.TOO_LOW)]
+        [InlineData(BreachType.TOO_HIGH)]
+        public void fakeContollerCheckAndAlertTest(BreachType breachType)
         {
-            var batteryCharacter = new TypewiseAlert.BatteryCharacter();
-            batteryCharacter.coolingType = CoolingType.PASSIVE_COOLING;
-            batteryCharacter.brand = "BOSCH";
-            BreachType breachType = BreachType.NORMAL;
+            //Arrange
+            var fakeControllerNotifier = new FakeControllerNotifier();
+            var alertNotifier = new AlertNotifier(fakeControllerNotifier);
 
-            var notifier = new Mock<FakeNotifier>();
-            notifier.Setup(x => x.SendNotification(breachType)).Verifiable();
+            //Act
+            alertNotifier.SendNotification(breachType);
 
-            var emailNotifier = new Mock<FakeBreachEmailNotifier>();
-            emailNotifier.Setup(x => x.BreachNotifier("")).Verifiable();
-
-            var exception = Record.Exception(() => TypewiseAlert.CheckAndAlert(AlertTarget.TO_FAKE, batteryCharacter, 12));
-            Assert.Null(exception);
-
-            Assert.True(FakeNotifier.isSendNotificationMethodCalledAtleastOnce);
-            Assert.True(FakeBreachEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
+            //Assert
+            Assert.True(fakeControllerNotifier.isSendNotificationMethodCalledAtleastOnce);
         }
+
+        [Theory(DisplayName = "When breach infered is TOO_LOW,TOO_HIGH and FAKE EMAIL alert triggered")]
+        [InlineData(BreachType.TOO_LOW)]
+        [InlineData(BreachType.TOO_HIGH)]
+        public void fakeEmailBreachCheckAndAlertTest(BreachType breachType)
+        {
+            //Arrange
+            var fakeEmailNotifier = new FakeEmailNotifier();
+            var alertNotifier = new AlertNotifier(fakeEmailNotifier);
+
+            //Act
+            alertNotifier.SendNotification(breachType);
+
+            //Assert
+            Assert.True(fakeEmailNotifier.isSendNotificationMethodCalledAtleastOnce &&
+                fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
+        }
+
+        [Theory(DisplayName = "When breach infered is NORMAL and no FAKE EMAIL alert triggered")]
+        [InlineData(BreachType.NORMAL)]
+        public void fakeEmailNormalBreachCheckAndAlertTest(BreachType breachType)
+        {
+            //Arrange
+            var fakeEmailNotifier = new FakeEmailNotifier();
+            var alertNotifier = new AlertNotifier(fakeEmailNotifier);
+
+            //Act
+            alertNotifier.SendNotification(breachType);
+
+            //Assert
+            Assert.True(fakeEmailNotifier.isSendNotificationMethodCalledAtleastOnce &&
+                !fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
+        }
+
+        
     }
 }

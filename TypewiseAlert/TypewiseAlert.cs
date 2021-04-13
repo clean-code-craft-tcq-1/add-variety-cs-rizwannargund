@@ -49,8 +49,13 @@ namespace TypewiseAlert
             BreachType breachType = ClassifyTemperatureBreach(
               batteryChar.coolingType, temperatureInC
             );
-            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert", 
-                typeof(IAlertRaiser), Enum.GetName(typeof(AlertTarget), alertTarget));
+            CreateInstanceAndSendAlert(alertTarget, breachType);
+        }
+
+        private static void CreateInstanceAndSendAlert(AlertTarget alertTarget, BreachType breachType)
+        {
+            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert",
+                            typeof(IAlertRaiser), Enum.GetName(typeof(AlertTarget), alertTarget));
             if (instanceObject != null)
             {
                 new AlertNotifier((IAlertRaiser)instanceObject).SendNotification(breachType);
