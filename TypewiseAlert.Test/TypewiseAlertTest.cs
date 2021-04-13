@@ -107,10 +107,11 @@ namespace TypewiseAlert.Test
 
             //Act
             alertNotifier.SendNotification(breachType);
+            var anyException = Record.Exception(() => new EmailNotifier().SendNotification(breachType));
 
             //Assert
             Assert.True(fakeEmailNotifier.isSendNotificationMethodCalledAtleastOnce &&
-                !fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
+                !fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce && (anyException == null));
         }
 
         [Fact(DisplayName = "When breach infered is HIGH and dummy EMAIL alert triggered")]
@@ -147,6 +148,16 @@ namespace TypewiseAlert.Test
             var anyException = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, tempValue));
             //Assert
             Assert.Null(anyException);
+        }
+
+        [Fact(DisplayName = "Test cooling limits")]
+        public void coolingLimitsTest()
+        {
+            var highActiveCooling = new HighActiveCooling();
+            highActiveCooling.Lower = 0;
+            highActiveCooling.Higher = 45;
+
+            Assert.True(highActiveCooling.Lower == 0 && highActiveCooling.Higher == 45);
         }
     }
 }
