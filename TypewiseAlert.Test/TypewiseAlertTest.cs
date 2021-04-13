@@ -159,5 +159,37 @@ namespace TypewiseAlert.Test
 
             Assert.True(highActiveCooling.Lower == 0 && highActiveCooling.Higher == 45);
         }
+
+        #region NullCheck
+        [Fact(DisplayName = "Null check for alert notifier")]
+        public void nullCheckForAlertNotifierTest()
+        {
+            IAlertRaiser alertRaiser = null;
+
+            //var anyException = Record.Exception(() => new AlertNotifier(alertRaiser));
+
+            Assert.Throws<System.ArgumentNullException>(() => new AlertNotifier(alertRaiser));
+        }
+
+        [Fact(DisplayName = "Null check for infer temperature breach")]
+        public void nullCheckForInferBreachTest()
+        {
+            ITemperatureBreach temperatureBreach = null;
+
+            //var anyException = Record.Exception(() => new AlertNotifier(alertRaiser));
+
+            Assert.Throws<System.ArgumentNullException>(() => new InferTemperatureBreach(temperatureBreach));
+        }
+
+        [Fact(DisplayName = "Null check for infer temperature breach")]
+        public void nullCheckForTemperatureCoolingTest()
+        {
+            ICoolingLimits coolingLimits = null;
+
+            //var anyException = Record.Exception(() => new AlertNotifier(alertRaiser));
+
+            Assert.Throws<System.ArgumentNullException>(() => new TemperatureCooling(coolingLimits));
+        }
+        #endregion
     }
 }
