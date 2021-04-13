@@ -7,6 +7,17 @@ namespace TypewiseAlert.Test
 {
     public class TypewiseAlertTest
     {
+        public static IEnumerable<object[]> CheckAndAlertForNormalBreach =>
+        new List<object[]>
+        {
+            new object[] { AlertTarget.TO_CONSOLE,
+                new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.PASSIVE_COOLING,brand="BOSCH"}, 12 },
+            new object[] { AlertTarget.TO_CONTROLLER,
+                new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.MED_ACTIVE_COOLING,brand="BOSCH"}, 12 },
+            new object[] { AlertTarget.TO_EMAIL,
+                new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.HI_ACTIVE_COOLING,brand="BOSCH"}, 12 },
+        };
+
 
         [Fact(DisplayName = "Metadata utility test")]
         public void metadataUtilityTest()
@@ -102,6 +113,14 @@ namespace TypewiseAlert.Test
                 !fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
         }
 
-        
+        [Theory(DisplayName = "Check and alert when normal breach")]
+        [MemberData(nameof(CheckAndAlertForNormalBreach))]
+        public void checkAndAlertForNormalBreach(AlertTarget alertTarget, TypewiseAlert.BatteryCharacter batteryCharacter,
+            double tempValue)
+        {
+            var anyException = Record.Exception(() => TypewiseAlert.CheckAndAlert(alertTarget, batteryCharacter, tempValue));
+            //Assert
+            Assert.Null(anyException);
+        }
     }
 }
