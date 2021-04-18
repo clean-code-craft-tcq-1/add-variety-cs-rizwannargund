@@ -6,37 +6,34 @@ using System.Globalization;
 
 namespace TypewiseAlert
 {
-    public class MetaDataUtility
+    public class MetaDataUtility : IMetaDataUtilisation
     {
-        private static Assembly _assembly;
-        private static Type[] _types;
-        private static Assembly LoadAssembly(string name)
-        => _assembly = Assembly.Load(name);
+        private Assembly _assembly;
+        private Type[] _types;
+        public MetaDataUtility(string nameSpace)
+        {
+            if(nameSpace == "")
+                throw new Exception("namespace parameter cannot be empty");
 
-        private static Type[] GetTypes(string nameSpace)
-        => _types = _assembly.GetTypes().Where(type => type.Namespace == nameSpace).ToArray();
+            _assembly = Assembly.GetExecutingAssembly();
+            _types = _assembly.GetTypes().Where(type => type.Namespace == nameSpace).ToArray();
+        }
 
-        private static Type[] GetTypeNameContiainInterfaces(Type interfaces)
+        private Type[] GetTypeNameContiainInterfaces(Type interfaces)
         => _types.Where(type => type.GetInterfaces().Contains(interfaces)).ToArray();
 
-        public static object CreateInstanceWithInterfaceAndAttribute(string assemblyName, string nameSpace, Type interfaceType, string attribute)
+        public object CreateInstanceFromInterfaceAndAttribute(Type interfaceType, string attribute)
         {
-            LoadAssembly(assemblyName);
-            GetTypes(nameSpace);
             Type[] types = GetTypeNameContiainInterfaces(interfaceType);
-            types = types.OrderBy(t => t.GetCustomAttribute<CustomAttribute>().value).ToArray();
             Type type = types.FirstOrDefault(t => t.GetCustomAttribute<CustomAttribute>().Name == attribute);
-
             object obj = null;
-            if(type != null)
+            if (type != null)
                 obj = Activator.CreateInstance(type);
             return obj;
         }
 
-        public static List<object> CreateInstanceFromInterface(string assemblyName, string nameSpace, Type interfaceType, object[,] parameters)
+        public List<object> CreateInstanceFromInterface(Type interfaceType, object[,] parameters)
         {
-            LoadAssembly(assemblyName);
-            GetTypes(nameSpace);
             Type[] types = GetTypeNameContiainInterfaces(interfaceType);
             types = types.OrderBy(t => t.GetCustomAttribute<CustomAttribute>().value).ToArray();
 

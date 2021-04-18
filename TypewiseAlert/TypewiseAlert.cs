@@ -5,10 +5,20 @@ namespace TypewiseAlert
 {
     public class TypewiseAlert
     {
+        public static IAlertNotifier AlertNotifier { get; private set; }
+        public static IMetaDataUtilisation MetaDataUtilisation { get; private set; }
+        public TypewiseAlert(IAlertNotifier alertNotifier, IMetaDataUtilisation metaDataUtilisation)
+        {
+            if (alertNotifier == null || metaDataUtilisation == null)
+                throw new ArgumentNullException("AlertNotifier and MetaDataUtilisation cannot be null");
+
+            AlertNotifier = alertNotifier;
+            MetaDataUtilisation = metaDataUtilisation;
+        }
         public static BreachType InferBreach(double value, double lowerLimit, double upperLimit)
         {
-            List<object> instanceObjects = MetaDataUtility.CreateInstanceFromInterface("TypewiseAlert", "TypewiseAlert",
-                typeof(ITemperatureBreach), new object[,] { { lowerLimit }, { upperLimit } });
+            List<object> instanceObjects = MetaDataUtilisation.CreateInstanceFromInterface(typeof(ITemperatureBreach), new object[,] { { lowerLimit }, { upperLimit } });
+
             List<BreachType> breachTypes = new List<BreachType>();
             BreachType result = BreachType.NORMAL;
             if (instanceObjects?.Count > 0)
@@ -27,8 +37,7 @@ namespace TypewiseAlert
         {
             int lowerLimit = 0;
             int upperLimit = 0;
-            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert", 
-                typeof(ICoolingLimits), Enum.GetName(typeof(CoolingType), coolingType));
+            object instanceObject = MetaDataUtilisation.CreateInstanceFromInterfaceAndAttribute(typeof(ICoolingLimits), coolingType.ToString());
             if (instanceObject != null)
             {
                 int[] limits = new TemperatureCooling((ICoolingLimits)instanceObject).GetLimits();
@@ -43,23 +52,14 @@ namespace TypewiseAlert
             public CoolingType coolingType;
             public string brand;
         }
-        public static void CheckAndAlert(
-            AlertTarget alertTarget, BatteryCharacter batteryChar, double temperatureInC)
+        public static void CheckAndAlert(BatteryCharacter batteryChar, double temperatureInC)
         {
             BreachType breachType = ClassifyTemperatureBreach(
               batteryChar.coolingType, temperatureInC
             );
-            CreateInstanceAndSendAlert(alertTarget, breachType);
+
+            new AlertNotifier((IAlertNotifier)AlertNotifier).SendNotification(breachType);
         }
 
-        private static void CreateInstanceAndSendAlert(AlertTarget alertTarget, BreachType breachType)
-        {
-            object instanceObject = MetaDataUtility.CreateInstanceWithInterfaceAndAttribute("TypewiseAlert", "TypewiseAlert",
-                            typeof(IAlertRaiser), Enum.GetName(typeof(AlertTarget), alertTarget));
-            if (instanceObject != null)
-            {
-                new AlertNotifier((IAlertRaiser)instanceObject).SendNotification(breachType);
-            }
-        }
     }
 }

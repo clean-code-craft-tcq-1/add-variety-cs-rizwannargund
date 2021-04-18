@@ -4,8 +4,8 @@ namespace TypewiseAlert
 {
     public class AlertNotifier
     {
-        IAlertRaiser _alert;
-        public AlertNotifier(IAlertRaiser alert)
+        IAlertNotifier _alert;
+        public AlertNotifier(IAlertNotifier alert)
         {
             if (alert == null)
                 throw new ArgumentNullException("IAlertRaiser cannot be null.");

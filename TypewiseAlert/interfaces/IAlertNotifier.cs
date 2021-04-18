@@ -1,6 +1,6 @@
 ﻿namespace TypewiseAlert
 {
-    public interface IAlertRaiser
+    public interface IAlertNotifier
     {
         void SendNotification(BreachType breachType);
     }

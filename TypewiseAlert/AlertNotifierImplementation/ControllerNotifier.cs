@@ -3,7 +3,7 @@
 namespace TypewiseAlert
 {
     [CustomAttribute("TO_CONTROLLER", value = 0)]
-    public class ControllerNotifier : IAlertRaiser
+    public class ControllerNotifier : IAlertNotifier
     {
         public void SendNotification(BreachType breachType)
         {

@@ -5,7 +5,7 @@ using System.Text;
 namespace TypewiseAlert
 {
     [CustomAttribute("TO_CONSOLE", value = 2)]
-    public class ConsoleNotifier : IAlertRaiser
+    public class ConsoleNotifier : IAlertNotifier
     {
         public void SendNotification(BreachType breachType)
         {

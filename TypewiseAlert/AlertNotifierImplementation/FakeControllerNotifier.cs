@@ -5,7 +5,7 @@ using System.Text;
 namespace TypewiseAlert
 {
     [CustomAttribute("TO_FAKE_CONTROLLER", value = 3)]
-    public class FakeControllerNotifier : IAlertRaiser
+    public class FakeControllerNotifier : IAlertNotifier
     {
         public bool isSendNotificationMethodCalledAtleastOnce = false;
         public void SendNotification(BreachType breachType)

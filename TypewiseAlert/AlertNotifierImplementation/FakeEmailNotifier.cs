@@ -5,7 +5,7 @@ using System.Text;
 namespace TypewiseAlert
 {
     [CustomAttribute("TO_FAKE_EMAIL", value = 3)]
-    public class FakeEmailNotifier : IAlertRaiser
+    public class FakeEmailNotifier : IAlertNotifier
     {
         public bool isSendNotificationMethodCalledAtleastOnce = false;
         public bool isBreachNotifierMethodCalledAtleastOnce = false;
