@@ -7,14 +7,6 @@ namespace TypewiseAlert.Test
 {
     public class TypewiseAlertTest
     {
-        public static IEnumerable<object[]> CompositeCheckAndAlert =>
-       new List<object[]>
-       {
-            new object[] { new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.PASSIVE_COOLING,brand="BOSCH"}, -1 },
-            new object[] { new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.MED_ACTIVE_COOLING,brand="BOSCH"}, 12 },
-            new object[] { new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.HI_ACTIVE_COOLING,brand="BOSCH"}, 46 },
-       };
-
         public static IEnumerable<object[]> FakeCheckAndAlert =>
         new List<object[]>
         {
@@ -164,7 +156,7 @@ namespace TypewiseAlert.Test
         }
 
         [Theory(DisplayName = "Composite notifier for fake")]
-        [MemberData(nameof(CompositeCheckAndAlert))]
+        [MemberData(nameof(FakeCheckAndAlert))]
         public void fakeCompositeNotifier(TypewiseAlert.BatteryCharacter batteryCharacter,
         double temperatureValue)
         {
