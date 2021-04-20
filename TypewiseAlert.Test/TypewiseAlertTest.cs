@@ -85,8 +85,7 @@ namespace TypewiseAlert.Test
             Assert.True(fakeControllerNotifier.isSendNotificationMethodCalledAtleastOnce);
         }
 
-        [Theory(DisplayName = "When breach infered is TOO_LOW,TOO_HIGH and FAKE EMAIL alert triggered," +
-            "And on NORMAL no FAKE EMAIl triggered")]
+        [Theory(DisplayName = "When breach infered is TOO_LOW,TOO_HIGH and FAKE EMAIL alert triggered")]
         [MemberData(nameof(FakeCheckAndAlert))]
         public void fakeEmailBreachCheckAndAlertTest(TypewiseAlert.BatteryCharacter batteryCharacter,
         double temperatureValue)
@@ -99,8 +98,8 @@ namespace TypewiseAlert.Test
             TypewiseAlert.CheckAndAlert(batteryCharacter, temperatureValue);
 
             //Assert
-            Assert.True(fakeEmailNotifier.isSendNotificationMethodCalledAtleastOnce &&
-                ((temperatureValue >= 0 && temperatureValue <= 45) || fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce));
+            Assert.True(fakeEmailNotifier.isSendNotificationMethodCalledAtleastOnce ||
+                 fakeEmailNotifier.isBreachNotifierMethodCalledAtleastOnce);
         }
 
         [Fact(DisplayName = "When breach infered is HIGH and dummy EMAIL alert triggered")]
