@@ -15,6 +15,14 @@ namespace TypewiseAlert.Test
             new object[] { new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.HI_ACTIVE_COOLING,brand="BOSCH"}, 46 },
         };
 
+        public static IEnumerable<object[]> CheckAndAlertForNormalBreach =>
+        new List<object[]>
+        {
+            new object[] { new EmailNotifier(), new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.PASSIVE_COOLING,brand="BOSCH"}, 12 },
+            new object[] { new ConsoleNotifier(),new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.MED_ACTIVE_COOLING,brand="BOSCH"}, 12 },
+            new object[] { new ControllerNotifier(), new TypewiseAlert.BatteryCharacter() { coolingType = CoolingType.HI_ACTIVE_COOLING,brand="BOSCH"}, 12 },
+        };
+
         private TypewiseAlert typewiseAlert;
 
         [Fact(DisplayName = "Metadata utility test")]
@@ -129,13 +137,12 @@ namespace TypewiseAlert.Test
         }
 
         [Theory(DisplayName = "Check and alert when normal breach")]
-        [MemberData(nameof(FakeCheckAndAlert))]
-        public void checkAndAlertForNormalBreach(TypewiseAlert.BatteryCharacter batteryCharacter,
+        [MemberData(nameof(CheckAndAlertForNormalBreach))]
+        public void checkAndAlertForNormalBreach(IAlertNotifier alertNotifier, TypewiseAlert.BatteryCharacter batteryCharacter,
         double tempValue)
         {
             //Arrange
-            var emailNotifier = new EmailNotifier();
-            typewiseAlert = new TypewiseAlert(emailNotifier, new MetaDataUtility("TypewiseAlert"));
+            typewiseAlert = new TypewiseAlert(alertNotifier, new MetaDataUtility("TypewiseAlert"));
 
             //Act
             var anyException = Record.Exception(() => TypewiseAlert.CheckAndAlert(batteryCharacter, tempValue));
